@@ -1,47 +1,16 @@
 {
-  "name": "dsh-usage-report",
-  "version": "0.1.0",
-  "description": "DeepSeek Harness plugin: per-session token usage and estimated cost report (/usage command + usage_report tool), priced from the DeepSeek pricing table.",
+  "name": "dsh-plugins",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Plugins for DeepSeek Harness (DSH), one package per plugin under packages/.",
   "type": "module",
-  "main": "lib/index.js",
-  "types": "lib/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./lib/index.d.ts",
-      "import": "./lib/index.js"
-    },
-    "./package.json": "./package.json"
-  },
-  "files": [
-    "lib"
-  ],
   "scripts": {
-    "build": "tsc -p tsconfig.json",
-    "test": "node --test tests/usage-fold.test.mjs"
-  },
-  "dependencies": {
-    "@deepseek-ai/cordis": "4.0.1",
-    "@deepseek-ai/dsh-commands": "0.1.0-rc.6",
-    "@deepseek-ai/dsh-session": "0.1.0-rc.6",
-    "@deepseek-ai/dsh-session-projection": "0.1.0-rc.6",
-    "@deepseek-ai/dsh-tools": "0.1.0-rc.6",
-    "@deepseek-ai/schemastery": "3.18.1",
-    "zod": "^4.4.3"
+    "build": "pnpm -r run build",
+    "test": "pnpm -r run test"
   },
   "devDependencies": {
-    "@types/node": "^22",
     "typescript": "^5.6.0"
   },
-  "keywords": [
-    "deepseek-harness",
-    "dsh",
-    "cordis",
-    "plugin",
-    "token",
-    "usage",
-    "cost",
-    "pricing"
-  ],
   "license": "MIT",
   "repository": {
     "type": "git",
