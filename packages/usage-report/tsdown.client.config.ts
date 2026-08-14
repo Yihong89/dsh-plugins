@@ -1,5 +1,6 @@
 import { defineConfig } from 'tsdown'
 
+const id = 'dsh-usage-report'
 const externals = [
   '@deepseek-ai/cordis',
   '@deepseek-ai/dsh-client-runtime/client',
@@ -20,5 +21,12 @@ export default defineConfig({
   deps: {
     neverBundle: externals,
     alwaysBundle: [/.*/],
+  },
+  define: { 'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV ?? 'production') },
+  outputOptions: {
+    entryFileNames: 'client.js',
+    banner: `window.__ModuleLoader__.load({ id: ${JSON.stringify(id)}, factory: (require) => {`,
+    footer: 'return module.exports; } });',
+    intro: 'var module = { exports: {} }; var exports = module.exports;',
   },
 })
