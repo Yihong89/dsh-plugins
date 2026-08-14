@@ -9,7 +9,8 @@
     "jsx": "react-jsx",
     "lib": ["ES2024", "DOM", "DOM.Iterable"],
     "types": [],
-    "noEmit": false
+    "noEmit": false,
+    "outDir": "lib/types"
   },
   "include": ["src/types.ts", "src/pricing.ts", "src/client/**/*.ts", "src/client/**/*.tsx"]
 }
