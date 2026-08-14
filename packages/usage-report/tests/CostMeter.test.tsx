@@ -3,6 +3,7 @@ import { render } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
 import { CostMeter, formatCost } from '../src/client/CostMeter.tsx'
 import { costBand } from '../src/client/color.ts'
+import { formatCny, usdToCny } from '../src/client/currency.ts'
 
 function renderWith(value: { totals: { cost: number } } | undefined) {
   // The slot component contract requires the full framework kit; the unit test
@@ -34,20 +35,31 @@ describe('formatCost', () => {
   })
 })
 
+describe('usdToCny / formatCny', () => {
+  it('converts USD to CNY with the default rate', () => {
+    expect(usdToCny(0.42)).toBeCloseTo(3.024, 5)
+  })
+
+  it('formats CNY with a yuan sign', () => {
+    expect(formatCny(3.024)).toBe('¥3.02')
+  })
+})
+
 describe('CostMeter', () => {
   it('renders nothing when there is no projection', () => {
     const { container } = renderWith(undefined)
     expect(container).toBeEmptyDOMElement()
   })
 
-  it('renders the cost with the low band marker', () => {
+  it('renders the cost in USD and CNY with the low band marker', () => {
     const { getByTestId } = renderWith({ totals: { cost: 0.42 } })
     expect(getByTestId('usage-cost')).toHaveAttribute('data-band', 'low')
-    expect(getByTestId('usage-cost')).toHaveTextContent('$0.42')
+    expect(getByTestId('usage-cost')).toHaveTextContent('$0.42 · ¥3.02')
   })
 
   it('renders the cost with the high band marker', () => {
     const { getByTestId } = renderWith({ totals: { cost: 8.0 } })
     expect(getByTestId('usage-cost')).toHaveAttribute('data-band', 'high')
+    expect(getByTestId('usage-cost')).toHaveTextContent('$8.00 · ¥57.60')
   })
 })

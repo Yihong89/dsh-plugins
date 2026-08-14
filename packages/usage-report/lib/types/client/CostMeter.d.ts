@@ -16,8 +16,9 @@ export type CostMeterProps = PropsRuntime<'conversation.composer.dock'>;
  */
 export declare function formatCost(cost: number, decimals?: number): string;
 /**
- * Render the current session's estimated cost, color-coded by magnitude.
- * Renders nothing until the projection has a value (no session / no usage yet).
+ * Render the current session's estimated cost in USD and CNY, color-coded by
+ * magnitude (banded on the USD figure). Renders nothing until the projection
+ * has a value (no session / no usage yet).
  * @param props - dock-slot props; only `useProjection` is consumed.
  * @returns the cost readout, or `null` when no projection value exists.
  */

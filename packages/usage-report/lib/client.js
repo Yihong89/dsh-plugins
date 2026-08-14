@@ -17,6 +17,33 @@ window.__ModuleLoader__.load({
 			return "mid";
 		}
 		//#endregion
+		//#region lib/types/client/currency.js
+		/**
+		* Currency display helpers for the live cost readout. Pure and testable; the
+		* USD→CNY rate is a fixed default constant (no live fetch), adjustable at the
+		* call site when configuration plumbing is added.
+		* @module dsh-usage-report/client/currency
+		*/
+		/** Default USD→CNY exchange rate used to render the CNY figure (2026-08). */
+		const USD_TO_CNY = 7.2;
+		/**
+		* Convert a USD amount to CNY using {@link USD_TO_CNY}.
+		* @param costUsd - the estimated cost in USD (non-negative).
+		* @returns the estimated cost in CNY.
+		*/
+		function usdToCny(costUsd) {
+			return costUsd * USD_TO_CNY;
+		}
+		/**
+		* Format a CNY amount as `¥X.XX`.
+		* @param costCny - the estimated cost in CNY.
+		* @param decimals - decimal places for display (default 2).
+		* @returns the `¥`-prefixed fixed-point string.
+		*/
+		function formatCny(costCny, decimals = 2) {
+			return `¥${costCny.toFixed(decimals)}`;
+		}
+		//#endregion
 		//#region lib/types/client/CostMeter.js
 		/**
 		* Format a USD cost to a compact string, e.g. `$1.25`.
@@ -28,8 +55,9 @@ window.__ModuleLoader__.load({
 			return `$${cost.toFixed(decimals)}`;
 		}
 		/**
-		* Render the current session's estimated cost, color-coded by magnitude.
-		* Renders nothing until the projection has a value (no session / no usage yet).
+		* Render the current session's estimated cost in USD and CNY, color-coded by
+		* magnitude (banded on the USD figure). Renders nothing until the projection
+		* has a value (no session / no usage yet).
 		* @param props - dock-slot props; only `useProjection` is consumed.
 		* @returns the cost readout, or `null` when no projection value exists.
 		*/
@@ -38,11 +66,15 @@ window.__ModuleLoader__.load({
 			if (value === void 0) return null;
 			const cost = value.totals.cost;
 			const band = costBand(cost);
-			return (0, react_jsx_runtime.jsx)("span", {
+			return (0, react_jsx_runtime.jsxs)("span", {
 				"data-testid": "usage-cost",
 				"data-band": band,
 				title: `est. cost · band: <$1 low, >=$5 high`,
-				children: formatCost(cost)
+				children: [
+					formatCost(cost),
+					" · ",
+					formatCny(usdToCny(cost))
+				]
 			});
 		}
 		//#endregion

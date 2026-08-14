@@ -13,6 +13,7 @@ import type {} from '@deepseek-ai/dsh-client-ui-conversation/client'
 import type {} from '@deepseek-ai/dsh-client-runtime/client'
 import type { PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots'
 import { costBand, HIGH_COST_THRESHOLD, LOW_COST_THRESHOLD } from './color.ts'
+import { formatCny, usdToCny } from './currency.ts'
 import type { UsageReportValue } from '../types.js'
 
 /** Props of the dock entry — the session standard kit already carries `useProjection`. */
@@ -29,8 +30,9 @@ export function formatCost(cost: number, decimals = 2): string {
 }
 
 /**
- * Render the current session's estimated cost, color-coded by magnitude.
- * Renders nothing until the projection has a value (no session / no usage yet).
+ * Render the current session's estimated cost in USD and CNY, color-coded by
+ * magnitude (banded on the USD figure). Renders nothing until the projection
+ * has a value (no session / no usage yet).
  * @param props - dock-slot props; only `useProjection` is consumed.
  * @returns the cost readout, or `null` when no projection value exists.
  */
@@ -46,7 +48,7 @@ export function CostMeter({ useProjection }: CostMeterProps): JSX.Element | null
       data-band={band}
       title={`est. cost · band: <$${LOW_COST_THRESHOLD} low, >=$${HIGH_COST_THRESHOLD} high`}
     >
-      {formatCost(cost)}
+      {formatCost(cost)} · {formatCny(usdToCny(cost))}
     </span>
   )
 }
