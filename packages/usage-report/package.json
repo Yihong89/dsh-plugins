@@ -30,7 +30,7 @@
   "scripts": {
     "clean": "rm -rf lib",
     "build": "pnpm run clean && tsc -p tsconfig.host.json && tsc -p tsconfig.client.json && tsdown --config tsdown.client.config.ts",
-    "test": "node --test tests/usage-fold.test.mjs && vitest run",
+    "test": "node --test tests/*.test.mjs && vitest run",
     "typecheck": "tsc -p tsconfig.host.json --noEmit && tsc -p tsconfig.client.json --noEmit"
   },
   "dependencies": {

@@ -36,6 +36,8 @@ export interface Config {
     defaultModel?: string;
     /** Decimal places for USD cost in text output (default 6). */
     costDecimals?: number;
+    /** URL of the DeepSeek pricing page used by `/usage check-prices` (default api-docs.deepseek.com). */
+    priceCheckUrl?: string;
 }
 export declare const Config: z<Config>;
 /** The tool's canonical value: totals plus one row per model (schema-friendly array). */

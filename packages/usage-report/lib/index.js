@@ -15,6 +15,9 @@ import { defineTool } from '@deepseek-ai/dsh-tools';
 import { DEEPSEEK_PRICES, } from './pricing.js';
 import { usageReportProjectionWith, emptyUsageReport } from './usage-fold.js';
 import { formatReport, DEFAULT_COST_DECIMALS } from './format.js';
+import { diffPrices, fetchDeepseekPrices } from './price-check.js';
+/** Default source for the price check: DeepSeek's published pricing page. */
+const DEFAULT_PRICE_CHECK_URL = 'https://api-docs.deepseek.com/quick_start/pricing';
 export const name = 'dsh-usage-report';
 export const inject = ['tools', 'commands'];
 export const Config = z.object({
@@ -22,6 +25,7 @@ export const Config = z.object({
     prices: z.dict(z.any()),
     defaultModel: z.string(),
     costDecimals: z.number(),
+    priceCheckUrl: z.string(),
 });
 /** Fail loudly on a malformed `prices` entry rather than silently underpricing. */
 function assertPriceShape(model, raw) {
@@ -103,8 +107,24 @@ export function apply(ctx, config) {
         name: 'usage',
         description: 'Show this session\'s token usage and estimated cost',
         handler: async (invocation) => {
-            if (invocation.rawInput.trim().length > 0) {
-                return { kind: 'error', text: 'Usage: /usage (no arguments)' };
+            const input = invocation.rawInput.trim();
+            if (input === 'check-prices') {
+                const parsed = await fetchDeepseekPrices(config.priceCheckUrl ?? DEFAULT_PRICE_CHECK_URL);
+                if (parsed === undefined) {
+                    return { kind: 'error', text: 'Could not verify DeepSeek prices (fetch or parse failed).' };
+                }
+                const diff = diffPrices(prices, parsed);
+                if (diff.length === 0) {
+                    return { kind: 'success', text: 'DeepSeek prices are up to date — the local table matches api-docs.deepseek.com.' };
+                }
+                return {
+                    kind: 'success',
+                    text: '⚠ DeepSeek prices changed on api-docs.deepseek.com:\n' + diff.join('\n')
+                        + '\nUpdate the `prices` table in cordis.patch.yml.',
+                };
+            }
+            if (input.length > 0) {
+                return { kind: 'error', text: 'Usage: /usage (no arguments) or /usage check-prices' };
             }
             const value = readReport(invocation.agent.session);
             return { kind: 'success', text: formatReport(value, prices, costDecimals, mode) };

@@ -25,8 +25,12 @@ import {
 } from './pricing.js'
 import { usageReportProjectionWith, emptyUsageReport, type FoldOptions } from './usage-fold.js'
 import { formatReport, DEFAULT_COST_DECIMALS } from './format.js'
+import { diffPrices, fetchDeepseekPrices } from './price-check.js'
 import type { ModelUsage, UsageReportValue } from './types.js'
 import type {} from './types.js'
+
+/** Default source for the price check: DeepSeek's published pricing page. */
+const DEFAULT_PRICE_CHECK_URL = 'https://api-docs.deepseek.com/quick_start/pricing'
 
 export const name = 'dsh-usage-report'
 export const inject = ['tools', 'commands']
@@ -51,6 +55,8 @@ export interface Config {
   defaultModel?: string
   /** Decimal places for USD cost in text output (default 6). */
   costDecimals?: number
+  /** URL of the DeepSeek pricing page used by `/usage check-prices` (default api-docs.deepseek.com). */
+  priceCheckUrl?: string
 }
 
 export const Config: z<Config> = z.object({
@@ -58,6 +64,7 @@ export const Config: z<Config> = z.object({
   prices: z.dict(z.any()),
   defaultModel: z.string(),
   costDecimals: z.number(),
+  priceCheckUrl: z.string(),
 })
 
 /** Fail loudly on a malformed `prices` entry rather than silently underpricing. */
@@ -151,8 +158,24 @@ export function apply(ctx: Context, config: Config): void {
     name: 'usage',
     description: 'Show this session\'s token usage and estimated cost',
     handler: async (invocation: CommandInvocation): Promise<CommandResult> => {
-      if (invocation.rawInput.trim().length > 0) {
-        return { kind: 'error', text: 'Usage: /usage (no arguments)' }
+      const input = invocation.rawInput.trim()
+      if (input === 'check-prices') {
+        const parsed = await fetchDeepseekPrices(config.priceCheckUrl ?? DEFAULT_PRICE_CHECK_URL)
+        if (parsed === undefined) {
+          return { kind: 'error', text: 'Could not verify DeepSeek prices (fetch or parse failed).' }
+        }
+        const diff = diffPrices(prices, parsed)
+        if (diff.length === 0) {
+          return { kind: 'success', text: 'DeepSeek prices are up to date — the local table matches api-docs.deepseek.com.' }
+        }
+        return {
+          kind: 'success',
+          text: '⚠ DeepSeek prices changed on api-docs.deepseek.com:\n' + diff.join('\n')
+            + '\nUpdate the `prices` table in cordis.patch.yml.',
+        }
+      }
+      if (input.length > 0) {
+        return { kind: 'error', text: 'Usage: /usage (no arguments) or /usage check-prices' }
       }
       const value = readReport(invocation.agent.session)
       return { kind: 'success', text: formatReport(value, prices, costDecimals, mode) }
