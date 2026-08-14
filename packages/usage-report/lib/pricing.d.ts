@@ -30,6 +30,8 @@ export interface PeakOffpeakPricing {
      * an interval whose `end <= start` wraps midnight.
      */
     peakWindowsUtc: [startMinutes: number, endMinutes: number][];
+    /** ISO-8601 UTC instant at which this regime takes effect (e.g. 2026-08-16T16:00:00Z). */
+    effectiveAt: string;
 }
 /** One model's pricing: the always-usable flat rate plus an optional regime. */
 export interface ModelPricing {
@@ -44,7 +46,7 @@ export type PriceTable = Record<string, ModelPricing>;
  */
 export declare const DEEPSEEK_PRICES: PriceTable;
 /** The pricing modes the report can apply. */
-export type PricingMode = 'flat' | 'peak-offpeak';
+export type PricingMode = 'auto' | 'flat' | 'peak-offpeak';
 /** Token counts the provider bills on, mirroring the four usage buckets. */
 export interface UsageBuckets {
     uncachedInputTokens: number;

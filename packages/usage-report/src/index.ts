@@ -54,7 +54,7 @@ export interface Config {
 }
 
 export const Config: z<Config> = z.object({
-  pricing: z.union([z.const('flat'), z.const('peak-offpeak')]).default('flat'),
+  pricing: z.union([z.const('auto'), z.const('flat'), z.const('peak-offpeak')]).default('auto'),
   prices: z.dict(z.any()),
   defaultModel: z.string(),
   costDecimals: z.number(),
@@ -126,7 +126,7 @@ const usageProps = {
  */
 export function apply(ctx: Context, config: Config): void {
   const prices = mergePrices(config.prices)
-  const mode: PricingMode = config.pricing === 'peak-offpeak' ? 'peak-offpeak' : 'flat'
+  const mode: PricingMode = config.pricing ?? 'auto'
   const costDecimals = config.costDecimals ?? DEFAULT_COST_DECIMALS
   const foldOptions: FoldOptions = {
     prices,

@@ -164,3 +164,21 @@ test('viewUsage skips untouched model rows', () => {
   }
   assert.deepEqual(viewUsage(state), emptyUsageReport())
 })
+
+test('auto mode prices flat before the new regime effectiveAt', () => {
+  const before = new Date('2026-08-16T15:59:59Z')
+  const price = priceFor(DEEPSEEK_PRICES['deepseek-v4-flash'], 'auto', before.getTime())
+  assert.equal(price.inputPerMillion, 0.14)
+})
+
+test('auto mode prices off-peak after the new regime effectiveAt outside a peak window', () => {
+  const after = new Date('2026-08-16T16:00:00Z')
+  const price = priceFor(DEEPSEEK_PRICES['deepseek-v4-flash'], 'auto', after.getTime())
+  assert.equal(price.inputPerMillion, 0.22)
+})
+
+test('auto mode prices peak after the new regime effectiveAt inside a peak window', () => {
+  const peakTime = new Date('2026-08-17T07:00:00Z')
+  const price = priceFor(DEEPSEEK_PRICES['deepseek-v4-flash'], 'auto', peakTime.getTime())
+  assert.equal(price.inputPerMillion, 0.44)
+})

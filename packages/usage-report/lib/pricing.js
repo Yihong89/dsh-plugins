@@ -21,6 +21,7 @@ export const DEEPSEEK_PRICES = {
             peak: { inputPerMillion: 0.44, cacheReadPerMillion: 0.014, outputPerMillion: 1.32 },
             offPeak: { inputPerMillion: 0.22, cacheReadPerMillion: 0.007, outputPerMillion: 0.66 },
             peakWindowsUtc: [[1 * 60, 4 * 60], [6 * 60, 10 * 60]],
+            effectiveAt: '2026-08-16T16:00:00Z',
         },
     },
     'deepseek-v4-pro': {
@@ -29,6 +30,7 @@ export const DEEPSEEK_PRICES = {
             peak: { inputPerMillion: 1.32, cacheReadPerMillion: 0.044, outputPerMillion: 3.96 },
             offPeak: { inputPerMillion: 0.66, cacheReadPerMillion: 0.022, outputPerMillion: 1.98 },
             peakWindowsUtc: [[1 * 60, 4 * 60], [6 * 60, 10 * 60]],
+            effectiveAt: '2026-08-16T16:00:00Z',
         },
     },
 };
@@ -46,6 +48,11 @@ export function inPeakWindow(windows, minutesOfDay) {
  * @returns the applicable price set.
  */
 export function priceFor(pricing, mode, timeMs) {
+    if (mode === 'auto') {
+        mode = pricing.peakOffpeak !== undefined && timeMs >= Date.parse(pricing.peakOffpeak.effectiveAt)
+            ? 'peak-offpeak'
+            : 'flat';
+    }
     if (mode !== 'peak-offpeak' || pricing.peakOffpeak === undefined)
         return pricing.flat;
     const regime = pricing.peakOffpeak;

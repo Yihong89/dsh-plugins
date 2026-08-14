@@ -18,7 +18,7 @@ import { formatReport, DEFAULT_COST_DECIMALS } from './format.js';
 export const name = 'dsh-usage-report';
 export const inject = ['tools', 'commands'];
 export const Config = z.object({
-    pricing: z.union([z.const('flat'), z.const('peak-offpeak')]).default('flat'),
+    pricing: z.union([z.const('auto'), z.const('flat'), z.const('peak-offpeak')]).default('auto'),
     prices: z.dict(z.any()),
     defaultModel: z.string(),
     costDecimals: z.number(),
@@ -80,7 +80,7 @@ const usageProps = {
  */
 export function apply(ctx, config) {
     const prices = mergePrices(config.prices);
-    const mode = config.pricing === 'peak-offpeak' ? 'peak-offpeak' : 'flat';
+    const mode = config.pricing ?? 'auto';
     const costDecimals = config.costDecimals ?? DEFAULT_COST_DECIMALS;
     const foldOptions = {
         prices,

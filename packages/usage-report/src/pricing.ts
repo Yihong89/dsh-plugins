@@ -32,6 +32,8 @@ export interface PeakOffpeakPricing {
    * an interval whose `end <= start` wraps midnight.
    */
   peakWindowsUtc: [startMinutes: number, endMinutes: number][]
+  /** ISO-8601 UTC instant at which this regime takes effect (e.g. 2026-08-16T16:00:00Z). */
+  effectiveAt: string
 }
 
 /** One model's pricing: the always-usable flat rate plus an optional regime. */
@@ -54,6 +56,7 @@ export const DEEPSEEK_PRICES: PriceTable = {
       peak: { inputPerMillion: 0.44, cacheReadPerMillion: 0.014, outputPerMillion: 1.32 },
       offPeak: { inputPerMillion: 0.22, cacheReadPerMillion: 0.007, outputPerMillion: 0.66 },
       peakWindowsUtc: [[1 * 60, 4 * 60], [6 * 60, 10 * 60]],
+      effectiveAt: '2026-08-16T16:00:00Z',
     },
   },
   'deepseek-v4-pro': {
@@ -62,12 +65,13 @@ export const DEEPSEEK_PRICES: PriceTable = {
       peak: { inputPerMillion: 1.32, cacheReadPerMillion: 0.044, outputPerMillion: 3.96 },
       offPeak: { inputPerMillion: 0.66, cacheReadPerMillion: 0.022, outputPerMillion: 1.98 },
       peakWindowsUtc: [[1 * 60, 4 * 60], [6 * 60, 10 * 60]],
+      effectiveAt: '2026-08-16T16:00:00Z',
     },
   },
 }
 
 /** The pricing modes the report can apply. */
-export type PricingMode = 'flat' | 'peak-offpeak'
+export type PricingMode = 'auto' | 'flat' | 'peak-offpeak'
 
 /** Token counts the provider bills on, mirroring the four usage buckets. */
 export interface UsageBuckets {
@@ -92,6 +96,11 @@ export function inPeakWindow(windows: [number, number][], minutesOfDay: number):
  * @returns the applicable price set.
  */
 export function priceFor(pricing: ModelPricing, mode: PricingMode, timeMs: number): ModelPrice {
+  if (mode === 'auto') {
+    mode = pricing.peakOffpeak !== undefined && timeMs >= Date.parse(pricing.peakOffpeak.effectiveAt)
+      ? 'peak-offpeak'
+      : 'flat'
+  }
   if (mode !== 'peak-offpeak' || pricing.peakOffpeak === undefined) return pricing.flat
   const regime = pricing.peakOffpeak
   const date = new Date(timeMs)
