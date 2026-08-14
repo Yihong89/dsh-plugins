@@ -7,7 +7,7 @@
  */
 import { CostMeter } from "./CostMeter.js";
 /** Cordis plugin name used by loader diagnostics. */
-export const name = 'dsh-usage-report/client';
+export const name = 'dsh-usage-plugin/client';
 /** Services required by this plugin. */
 export const inject = ['sessions', 'slots'];
 /**

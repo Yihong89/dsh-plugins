@@ -14,7 +14,7 @@ import type {} from '@deepseek-ai/dsh-client-ui-slots'
 import { CostMeter } from './CostMeter.tsx'
 
 /** Cordis plugin name used by loader diagnostics. */
-export const name = 'dsh-usage-report/client'
+export const name = 'dsh-usage-plugin/client'
 
 /** Services required by this plugin. */
 export const inject = ['sessions', 'slots']

@@ -1,5 +1,5 @@
 window.__ModuleLoader__.load({
-	id: "dsh-usage-report",
+	id: "dsh-usage-plugin",
 	factory: (require) => {
 		var module = { exports: {} };
 		var exports = module.exports;
@@ -87,7 +87,7 @@ window.__ModuleLoader__.load({
 		* @module dsh-usage-report/client
 		*/
 		/** Cordis plugin name used by loader diagnostics. */
-		const name = "dsh-usage-report/client";
+		const name = "dsh-usage-plugin/client";
 		/** Services required by this plugin. */
 		const inject = ["sessions", "slots"];
 		/**

@@ -7,7 +7,7 @@
  */
 import type { ClientContext } from '@deepseek-ai/dsh-client-runtime/client';
 /** Cordis plugin name used by loader diagnostics. */
-export declare const name = "dsh-usage-report/client";
+export declare const name = "dsh-usage-plugin/client";
 /** Services required by this plugin. */
 export declare const inject: string[];
 /**

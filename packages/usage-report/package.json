@@ -1,5 +1,5 @@
 {
-  "name": "dsh-usage-report",
+  "name": "dsh-usage-plugin",
   "version": "0.1.0",
   "description": "DeepSeek Harness plugin: per-session token usage and estimated cost report (/usage command + usage_report tool + live cost in the web composer dock), priced from the DeepSeek pricing table.",
   "type": "module",

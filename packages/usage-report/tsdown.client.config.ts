@@ -1,6 +1,6 @@
 import { defineConfig } from 'tsdown'
 
-const id = 'dsh-usage-report'
+const id = 'dsh-usage-plugin'
 const externals = [
   '@deepseek-ai/cordis',
   '@deepseek-ai/dsh-client-runtime/client',

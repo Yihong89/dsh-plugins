@@ -1,4 +1,4 @@
-# dsh-usage-report
+# dsh-usage-plugin
 
 A DeepSeek Harness plugin that reports the current session's **token usage and
 estimated cost**. One host-plane plugin row registers:
@@ -23,14 +23,14 @@ three via `dsh-base`).
 
 ```sh
 # 1. make the plugin available to your profile (installs from this GitHub repo)
-dsh plugin --profile web add -w 'github:Yihong89/dsh-plugins#main&path:packages/usage-report'
+dsh plugin --profile web add -w 'github:Yihong89/dsh-usage-plugin#main&path:packages/usage-report'
 
 # 2. activate it in the profile's patch layer
 #    add to ~/.dsh/profiles/web/cordis.patch.yml:
 #
 #    - insert:
 #        - id: usage-report
-#          name: 'dsh-usage-report'
+#          name: 'dsh-usage-plugin'
 
 # 3. restart the profile (e.g. restart the `dsh web` process)
 ```
@@ -69,7 +69,7 @@ Set from the plugin row's `config:` block in `cordis.patch.yml`:
 
 ```yaml
 - id: usage-report
-  name: 'dsh-usage-report'
+  name: 'dsh-usage-plugin'
   config:
     pricing: flat            # 'flat' | 'peak-offpeak'
     prices: {}               # per-model overrides, merged over the DeepSeek table
