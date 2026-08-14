@@ -1,4 +1,4 @@
-import { jsxs as _jsxs } from "react/jsx-runtime";
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { costBand, HIGH_COST_THRESHOLD, LOW_COST_THRESHOLD } from "./color.js";
 import { formatCny, usdToCny } from "./currency.js";
 /**
@@ -24,6 +24,6 @@ export function CostMeter({ useProjection }) {
         return null;
     const cost = value.totals.cost;
     const band = costBand(cost);
-    return (_jsxs("span", { "data-testid": "usage-cost", "data-band": band, title: `est. cost · band: <$${LOW_COST_THRESHOLD} low, >=$${HIGH_COST_THRESHOLD} high`, children: [formatCost(cost), " \u00B7 ", formatCny(usdToCny(cost))] }));
+    return (_jsxs("span", { "data-testid": "usage-cost", "data-band": band, title: `est. cost · band: <$${LOW_COST_THRESHOLD} low, >=$${HIGH_COST_THRESHOLD} high`, children: [formatCost(cost), " \u00B7 ", formatCny(usdToCny(cost)), value.priceUpdateAvailable && (_jsx("span", { "data-testid": "price-badge", "data-badge": "price-update", title: "DeepSeek prices changed on api-docs.deepseek.com \u2014 update the `prices` table in cordis.patch.yml", children: "\u26A0" })), value.unpricedModels.length > 0 && (_jsx("span", { "data-testid": "unpriced-badge", "data-badge": "unpriced", title: `Unpriced models: ${value.unpricedModels.join(', ')} — add them under \`prices\` in cordis.patch.yml`, children: "?" }))] }));
 }
 //# sourceMappingURL=CostMeter.js.map

@@ -5,10 +5,11 @@ import { CostMeter, formatCost } from '../src/client/CostMeter.tsx'
 import { costBand } from '../src/client/color.ts'
 import { formatCny, usdToCny } from '../src/client/currency.ts'
 
-function renderWith(value: { totals: { cost: number } } | undefined) {
+function renderWith(value: { totals: { cost: number } } & Partial<{ priceUpdateAvailable: boolean; unpricedModels: string[] }> | undefined) {
   // The slot component contract requires the full framework kit; the unit test
   // supplies only `useProjection`, so cast to satisfy the composed props type.
-  return render(<CostMeter useProjection={() => value} /> as any)
+  const merged = value === undefined ? undefined : { priceUpdateAvailable: false, unpricedModels: [] as string[], ...value }
+  return render(<CostMeter useProjection={() => merged} /> as any)
 }
 
 describe('costBand', () => {
@@ -61,5 +62,17 @@ describe('CostMeter', () => {
     const { getByTestId } = renderWith({ totals: { cost: 8.0 } })
     expect(getByTestId('usage-cost')).toHaveAttribute('data-band', 'high')
     expect(getByTestId('usage-cost')).toHaveTextContent('$8.00 · ¥57.60')
+  })
+
+  it('shows a price-update badge when a DeepSeek price change is available', () => {
+    const { getByTestId } = renderWith({ totals: { cost: 0.42 }, priceUpdateAvailable: true })
+    expect(getByTestId('price-badge')).toHaveAttribute('data-badge', 'price-update')
+  })
+
+  it('shows an unpriced-model badge naming the model', () => {
+    const { getByTestId } = renderWith({ totals: { cost: 0.42 }, unpricedModels: ['claude-sonnet-5'] })
+    const badge = getByTestId('unpriced-badge')
+    expect(badge).toHaveAttribute('data-badge', 'unpriced')
+    expect(badge).toHaveAttribute('title', expect.stringContaining('claude-sonnet-5'))
   })
 })

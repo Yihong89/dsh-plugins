@@ -49,6 +49,24 @@ export function CostMeter({ useProjection }: CostMeterProps): JSX.Element | null
       title={`est. cost · band: <$${LOW_COST_THRESHOLD} low, >=$${HIGH_COST_THRESHOLD} high`}
     >
       {formatCost(cost)} · {formatCny(usdToCny(cost))}
+      {value.priceUpdateAvailable && (
+        <span
+          data-testid="price-badge"
+          data-badge="price-update"
+          title="DeepSeek prices changed on api-docs.deepseek.com — update the `prices` table in cordis.patch.yml"
+        >
+          ⚠
+        </span>
+      )}
+      {value.unpricedModels.length > 0 && (
+        <span
+          data-testid="unpriced-badge"
+          data-badge="unpriced"
+          title={`Unpriced models: ${value.unpricedModels.join(', ')} — add them under \`prices\` in cordis.patch.yml`}
+        >
+          ?
+        </span>
+      )}
     </span>
   )
 }

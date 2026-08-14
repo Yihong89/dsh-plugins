@@ -73,7 +73,19 @@ window.__ModuleLoader__.load({
 				children: [
 					formatCost(cost),
 					" · ",
-					formatCny(usdToCny(cost))
+					formatCny(usdToCny(cost)),
+					value.priceUpdateAvailable && (0, react_jsx_runtime.jsx)("span", {
+						"data-testid": "price-badge",
+						"data-badge": "price-update",
+						title: "DeepSeek prices changed on api-docs.deepseek.com — update the `prices` table in cordis.patch.yml",
+						children: "⚠"
+					}),
+					value.unpricedModels.length > 0 && (0, react_jsx_runtime.jsx)("span", {
+						"data-testid": "unpriced-badge",
+						"data-badge": "unpriced",
+						title: `Unpriced models: ${value.unpricedModels.join(", ")} — add them under \`prices\` in cordis.patch.yml`,
+						children: "?"
+					})
 				]
 			});
 		}
