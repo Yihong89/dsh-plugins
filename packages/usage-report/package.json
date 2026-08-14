@@ -16,7 +16,7 @@
     },
     "./client": {
       "types": "./lib/types/client/index.d.ts",
-      "import": "./lib/client.cjs"
+      "default": "./lib/client.cjs"
     },
     "./package.json": "./package.json"
   },
