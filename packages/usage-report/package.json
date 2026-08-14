@@ -1,23 +1,38 @@
 {
   "name": "dsh-usage-report",
   "version": "0.1.0",
-  "description": "DeepSeek Harness plugin: per-session token usage and estimated cost report (/usage command + usage_report tool), priced from the DeepSeek pricing table.",
+  "description": "DeepSeek Harness plugin: per-session token usage and estimated cost report (/usage command + usage_report tool + live cost in the web composer dock), priced from the DeepSeek pricing table.",
   "type": "module",
   "main": "lib/index.js",
-  "types": "lib/index.d.ts",
+  "types": "lib/types/index.d.ts",
   "exports": {
     ".": {
-      "types": "./lib/index.d.ts",
+      "types": "./lib/types/index.d.ts",
       "import": "./lib/index.js"
+    },
+    "./types": {
+      "types": "./lib/types/types.d.ts",
+      "import": "./lib/types/types.js"
+    },
+    "./client": {
+      "types": "./lib/types/client/index.d.ts",
+      "import": "./lib/client.js"
     },
     "./package.json": "./package.json"
   },
   "files": [
-    "lib"
+    "lib/index.js",
+    "lib/client.js",
+    "lib/client.js.map",
+    "lib/types/**/*.js",
+    "lib/types/**/*.d.ts",
+    "README.md"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.json",
-    "test": "node --test tests/usage-fold.test.mjs"
+    "clean": "rm -rf lib",
+    "build": "pnpm run clean && tsc -p tsconfig.host.json && tsdown --config tsdown.host.config.ts && tsc -p tsconfig.client.json && tsdown --config tsdown.client.config.ts",
+    "test": "node --test tests/usage-fold.test.mjs && vitest run",
+    "typecheck": "tsc -p tsconfig.host.json --noEmit && tsc -p tsconfig.client.json --noEmit"
   },
   "dependencies": {
     "@deepseek-ai/schemastery": "^3.18.1",
@@ -28,7 +43,11 @@
     "@deepseek-ai/dsh-commands": "^0.1.0-rc.6",
     "@deepseek-ai/dsh-session": "^0.1.0-rc.6",
     "@deepseek-ai/dsh-session-projection": "^0.1.0-rc.6",
-    "@deepseek-ai/dsh-tools": "^0.1.0-rc.6"
+    "@deepseek-ai/dsh-tools": "^0.1.0-rc.6",
+    "@deepseek-ai/dsh-client-runtime": "^0.1.0-rc.6",
+    "@deepseek-ai/dsh-client-ui-slots": "^0.1.0-rc.6",
+    "@deepseek-ai/dsh-client-ui-conversation": "^0.1.0-rc.6",
+    "react": "^18.2.0"
   },
   "devDependencies": {
     "@deepseek-ai/cordis": "^4.0.1",
@@ -36,8 +55,21 @@
     "@deepseek-ai/dsh-session": "^0.1.0-rc.6",
     "@deepseek-ai/dsh-session-projection": "^0.1.0-rc.6",
     "@deepseek-ai/dsh-tools": "^0.1.0-rc.6",
+    "@deepseek-ai/dsh-client-runtime": "^0.1.0-rc.6",
+    "@deepseek-ai/dsh-client-ui-slots": "^0.1.0-rc.6",
+    "@deepseek-ai/dsh-client-ui-conversation": "^0.1.0-rc.6",
+    "@testing-library/jest-dom": "^6.0.0",
+    "@testing-library/react": "^16.3.0",
     "@types/node": "^22",
-    "typescript": "^5.6.0"
+    "@types/react": "^18.3.28",
+    "@types/react-dom": "^18.3.7",
+    "jsdom": "^29.0.0",
+    "lightningcss": "^1.30.2",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "tsdown": "^0.22.14",
+    "typescript": "^5.6.0",
+    "vitest": "^4.1.0"
   },
   "keywords": [
     "deepseek-harness",
@@ -49,6 +81,19 @@
     "cost",
     "pricing"
   ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-runtime",
+        "@deepseek-ai/dsh-client-ui-slots",
+        "@deepseek-ai/dsh-client-locale"
+      ]
+    }
+  },
   "license": "MIT",
   "repository": {
     "type": "git",

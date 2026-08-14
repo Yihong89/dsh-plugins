@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "lib": ["ES2024", "DOM", "DOM.Iterable"],
+    "types": [],
+    "noEmit": false
+  },
+  "include": ["src/types.ts", "src/client/**/*.ts", "src/client/**/*.tsx"]
+}
