@@ -1,10 +1,15 @@
 {
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "verbatimModuleSyntax": false,
+    "allowImportingTsExtensions": true,
+    "rewriteRelativeImportExtensions": true,
     "jsx": "react-jsx",
     "lib": ["ES2024", "DOM", "DOM.Iterable"],
     "types": [],
     "noEmit": false
   },
-  "include": ["src/types.ts", "src/client/**/*.ts", "src/client/**/*.tsx"]
+  "include": ["src/types.ts", "src/pricing.ts", "src/client/**/*.ts", "src/client/**/*.tsx"]
 }
