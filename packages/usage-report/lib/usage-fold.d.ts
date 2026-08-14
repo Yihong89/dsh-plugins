@@ -32,6 +32,8 @@ export interface UsageReportState {
     } | null;
     models: Record<string, ModelUsage>;
     last: SampleRecord | null;
+    /** Models used this session with no entry in the price table, in first-use order. */
+    unpricedModels: string[];
 }
 /** Configuration the fold needs; fixed at registration from the plugin config. */
 export interface FoldOptions {
@@ -39,6 +41,8 @@ export interface FoldOptions {
     mode: PricingMode;
     /** Model attributed to a usage sample with no preceding `request/header`; defaults to `'unknown'`. */
     defaultModel?: string;
+    /** Returns whether a DeepSeek price change has been detected; default false. */
+    priceUpdateAvailable?: () => boolean;
 }
 /**
  * Fold one event onto the usage-report state. Returns the same reference when
@@ -46,7 +50,7 @@ export interface FoldOptions {
  */
 export declare function applyUsage(state: UsageReportState, event: SessionEvent, options: FoldOptions): UsageReportState;
 /** Derive the wire payload: per-model usage plus the totals across models. */
-export declare function viewUsage(state: UsageReportState): UsageReportValue;
+export declare function viewUsage(state: UsageReportState, priceUpdateAvailable?: boolean): UsageReportValue;
 /** Wire schema of the `usageReport` projection value. */
 export declare const usageReportSchema: z.ZodObject<{
     totals: z.ZodObject<{
@@ -65,6 +69,8 @@ export declare const usageReportSchema: z.ZodObject<{
         requests: z.ZodNumber;
         cost: z.ZodNumber;
     }, z.core.$strict>>;
+    priceUpdateAvailable: z.ZodBoolean;
+    unpricedModels: z.ZodArray<z.ZodString>;
 }, z.core.$strict>;
 /**
  * Bind the fold to a resolved price table. Returns a fresh definition whose

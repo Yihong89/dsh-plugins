@@ -86,6 +86,9 @@ export function applyUsage(state, event, options) {
     const model = state.route?.model ?? options.defaultModel ?? 'unknown';
     const price = options.prices[model];
     const cost = price === undefined ? 0 : costOf(priceFor(price, options.mode, sample.timeMs), sample.buckets);
+    const unpricedModels = price === undefined && !state.unpricedModels.includes(model)
+        ? [...state.unpricedModels, model]
+        : state.unpricedModels;
     const previous = state.last !== null && state.last.turn === sample.turn && state.last.step === sample.step
         ? state.last
         : undefined;
@@ -97,16 +100,16 @@ export function applyUsage(state, event, options) {
         models[previous.model] = subtractBuckets(current, previous.buckets, current.requests - 1, current.cost - previous.cost);
         const target = models[model] ?? zeroUsage();
         models[model] = addBuckets(target, sample.buckets, target.requests + 1, target.cost + cost);
-        return { ...state, models, last: { turn: sample.turn, step: sample.step, model, buckets: sample.buckets, cost } };
+        return { ...state, unpricedModels, models, last: { turn: sample.turn, step: sample.step, model, buckets: sample.buckets, cost } };
     }
     // A brand-new (turn, step): one more request for its model.
     const models = { ...state.models };
     const target = models[model] ?? zeroUsage();
     models[model] = addBuckets(target, sample.buckets, target.requests + 1, target.cost + cost);
-    return { ...state, models, last: { turn: sample.turn, step: sample.step, model, buckets: sample.buckets, cost } };
+    return { ...state, unpricedModels, models, last: { turn: sample.turn, step: sample.step, model, buckets: sample.buckets, cost } };
 }
 /** Derive the wire payload: per-model usage plus the totals across models. */
-export function viewUsage(state) {
+export function viewUsage(state, priceUpdateAvailable = false) {
     const totals = zeroUsage();
     const models = {};
     for (const [model, usage] of Object.entries(state.models)) {
@@ -121,7 +124,7 @@ export function viewUsage(state) {
         totals.requests += usage.requests;
         totals.cost += usage.cost;
     }
-    return { totals, models };
+    return { totals, models, priceUpdateAvailable, unpricedModels: state.unpricedModels };
 }
 const usageSchema = z.object({
     uncachedInputTokens: z.number().int().nonnegative(),
@@ -135,6 +138,8 @@ const usageSchema = z.object({
 export const usageReportSchema = z.object({
     totals: usageSchema,
     models: z.record(z.string(), usageSchema),
+    priceUpdateAvailable: z.boolean(),
+    unpricedModels: z.array(z.string()),
 }).strict();
 /**
  * Bind the fold to a resolved price table. Returns a fresh definition whose
@@ -144,14 +149,14 @@ export function usageReportProjectionWith(options) {
     return {
         key: 'usageReport',
         schema: usageReportSchema,
-        init: () => ({ route: null, models: {}, last: null }),
+        init: () => ({ route: null, models: {}, last: null, unpricedModels: [] }),
         apply: (state, event) => applyUsage(state, event, options),
-        view: viewUsage,
+        view: (state) => viewUsage(state, options.priceUpdateAvailable?.() ?? false),
         stateVersion: 1,
     };
 }
 /** An empty report, for sessions with no usage yet. */
 export function emptyUsageReport() {
-    return { totals: zeroUsage(), models: {} };
+    return { totals: zeroUsage(), models: {}, priceUpdateAvailable: false, unpricedModels: [] };
 }
 //# sourceMappingURL=usage-fold.js.map

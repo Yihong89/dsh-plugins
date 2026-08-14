@@ -17,7 +17,7 @@ const fmt = (n: number): string => n.toLocaleString('en-US')
 
 /** Render one report as a fixed-width text table. */
 export function formatReport(
-  value: UsageReportValue,
+  value: Pick<UsageReportValue, 'totals' | 'models'>,
   prices: PriceTable,
   costDecimals = DEFAULT_COST_DECIMALS,
   modeLabel = 'flat',

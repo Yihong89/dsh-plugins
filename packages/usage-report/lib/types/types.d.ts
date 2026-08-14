@@ -22,6 +22,10 @@ export interface ModelUsage extends UsageBuckets {
 export interface UsageReportValue {
     totals: ModelUsage;
     models: Record<string, ModelUsage>;
+    /** A DeepSeek price change was detected on the published page and the local table is stale. */
+    priceUpdateAvailable: boolean;
+    /** Models used this session with no entry in the price table. */
+    unpricedModels: string[];
 }
 declare module '@deepseek-ai/dsh-session-projection/types' {
     interface SessionProjectionMap {

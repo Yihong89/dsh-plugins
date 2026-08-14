@@ -86,11 +86,20 @@ export function apply(ctx, config) {
     const prices = mergePrices(config.prices);
     const mode = config.pricing ?? 'auto';
     const costDecimals = config.costDecimals ?? DEFAULT_COST_DECIMALS;
+    const priceState = { available: false };
     const foldOptions = {
         prices,
         mode,
         ...(config.defaultModel === undefined ? {} : { defaultModel: config.defaultModel }),
+        priceUpdateAvailable: () => priceState.available,
     };
+    // Fire-and-forget boot check: a detected DeepSeek price change flags the
+    // projection so the dock badge and /usage can surface it. Never throws.
+    void (async () => {
+        const parsed = await fetchDeepseekPrices(config.priceCheckUrl ?? DEFAULT_PRICE_CHECK_URL);
+        if (parsed !== undefined && diffPrices(prices, parsed).length > 0)
+            priceState.available = true;
+    })();
     // The projection unit registers only when the session-projection seam is
     // composed; the command and tool read the report through ctx.get and work
     // without it (empty report until the seam exists).
@@ -127,7 +136,14 @@ export function apply(ctx, config) {
                 return { kind: 'error', text: 'Usage: /usage (no arguments) or /usage check-prices' };
             }
             const value = readReport(invocation.agent.session);
-            return { kind: 'success', text: formatReport(value, prices, costDecimals, mode) };
+            let text = formatReport(value, prices, costDecimals, mode);
+            if (value.priceUpdateAvailable) {
+                text += '\n⚠ DeepSeek prices changed on api-docs.deepseek.com — update the `prices` table in cordis.patch.yml (see /usage check-prices).';
+            }
+            if (value.unpricedModels.length > 0) {
+                text += `\n⚠ unpriced models: ${value.unpricedModels.join(', ')} — add them under \`prices\` in cordis.patch.yml.`;
+            }
+            return { kind: 'success', text };
         },
     });
     ctx.tools.register(defineTool({

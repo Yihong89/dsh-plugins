@@ -161,8 +161,25 @@ test('viewUsage skips untouched model rows', () => {
     route: null,
     models: { 'deepseek-v4-flash': { ...buckets(0, 0), requests: 0, cost: 0 } },
     last: null,
+    unpricedModels: [],
   }
   assert.deepEqual(viewUsage(state), emptyUsageReport())
+})
+
+test('an unknown model is collected into unpricedModels with zero cost', () => {
+  const state = {
+    route: { provider: 'deepseek-official', model: 'some-unknown-model' },
+    models: {},
+    last: null,
+    unpricedModels: [],
+  }
+  const next = applyUsage(state, {
+    type: 'assistant/chunk',
+    data: { turn: 1, step: 1, chunk: { type: 'usage', usage: { inputTokens: 100, outputTokens: 50 } } },
+  }, { prices: DEEPSEEK_PRICES, mode: 'auto' })
+  const value = viewUsage(next)
+  assert.deepEqual(value.unpricedModels, ['some-unknown-model'])
+  assert.equal(value.models['some-unknown-model'].cost, 0)
 })
 
 test('auto mode prices flat before the new regime effectiveAt', () => {

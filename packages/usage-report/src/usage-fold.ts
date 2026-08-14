@@ -32,6 +32,8 @@ export interface UsageReportState {
   route: { provider: string; model: string } | null
   models: Record<string, ModelUsage>
   last: SampleRecord | null
+  /** Models used this session with no entry in the price table, in first-use order. */
+  unpricedModels: string[]
 }
 
 /** Configuration the fold needs; fixed at registration from the plugin config. */
@@ -40,6 +42,8 @@ export interface FoldOptions {
   mode: PricingMode
   /** Model attributed to a usage sample with no preceding `request/header`; defaults to `'unknown'`. */
   defaultModel?: string
+  /** Returns whether a DeepSeek price change has been detected; default false. */
+  priceUpdateAvailable?: () => boolean
 }
 
 const zeroUsage = (): ModelUsage => ({
@@ -122,6 +126,9 @@ export function applyUsage(state: UsageReportState, event: SessionEvent, options
   const model = state.route?.model ?? options.defaultModel ?? 'unknown'
   const price = options.prices[model]
   const cost = price === undefined ? 0 : costOf(priceFor(price, options.mode, sample.timeMs), sample.buckets)
+  const unpricedModels = price === undefined && !state.unpricedModels.includes(model)
+    ? [...state.unpricedModels, model]
+    : state.unpricedModels
   const previous = state.last !== null && state.last.turn === sample.turn && state.last.step === sample.step
     ? state.last
     : undefined
@@ -133,18 +140,18 @@ export function applyUsage(state: UsageReportState, event: SessionEvent, options
     models[previous.model] = subtractBuckets(current, previous.buckets, current.requests - 1, current.cost - previous.cost)
     const target = models[model] ?? zeroUsage()
     models[model] = addBuckets(target, sample.buckets, target.requests + 1, target.cost + cost)
-    return { ...state, models, last: { turn: sample.turn, step: sample.step, model, buckets: sample.buckets, cost } }
+    return { ...state, unpricedModels, models, last: { turn: sample.turn, step: sample.step, model, buckets: sample.buckets, cost } }
   }
 
   // A brand-new (turn, step): one more request for its model.
   const models = { ...state.models }
   const target = models[model] ?? zeroUsage()
   models[model] = addBuckets(target, sample.buckets, target.requests + 1, target.cost + cost)
-  return { ...state, models, last: { turn: sample.turn, step: sample.step, model, buckets: sample.buckets, cost } }
+  return { ...state, unpricedModels, models, last: { turn: sample.turn, step: sample.step, model, buckets: sample.buckets, cost } }
 }
 
 /** Derive the wire payload: per-model usage plus the totals across models. */
-export function viewUsage(state: UsageReportState): UsageReportValue {
+export function viewUsage(state: UsageReportState, priceUpdateAvailable = false): UsageReportValue {
   const totals = zeroUsage()
   const models: Record<string, ModelUsage> = {}
   for (const [model, usage] of Object.entries(state.models)) {
@@ -158,7 +165,7 @@ export function viewUsage(state: UsageReportState): UsageReportValue {
     totals.requests += usage.requests
     totals.cost += usage.cost
   }
-  return { totals, models }
+  return { totals, models, priceUpdateAvailable, unpricedModels: state.unpricedModels }
 }
 
 const usageSchema = z.object({
@@ -174,6 +181,8 @@ const usageSchema = z.object({
 export const usageReportSchema = z.object({
   totals: usageSchema,
   models: z.record(z.string(), usageSchema),
+  priceUpdateAvailable: z.boolean(),
+  unpricedModels: z.array(z.string()),
 }).strict()
 
 /**
@@ -184,14 +193,14 @@ export function usageReportProjectionWith(options: FoldOptions): ProjectionDefin
   return {
     key: 'usageReport',
     schema: usageReportSchema,
-    init: () => ({ route: null, models: {}, last: null }),
+    init: () => ({ route: null, models: {}, last: null, unpricedModels: [] }),
     apply: (state, event) => applyUsage(state, event, options),
-    view: viewUsage,
+    view: (state) => viewUsage(state, options.priceUpdateAvailable?.() ?? false),
     stateVersion: 1,
   }
 }
 
 /** An empty report, for sessions with no usage yet. */
 export function emptyUsageReport(): UsageReportValue {
-  return { totals: zeroUsage(), models: {} }
+  return { totals: zeroUsage(), models: {}, priceUpdateAvailable: false, unpricedModels: [] }
 }
